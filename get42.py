@@ -55,7 +55,7 @@ async def throttled_fetch(session, url, headers=None, retries=3):
     global last_request_time
     global request_count
 
-    print(f"Fetching URL: {url}")
+    # print(f"Fetching URL: {url}")
     
     # Ensure that requests are made within the rate limit
     elapsed_time = time.time() - last_request_time
@@ -78,7 +78,7 @@ async def throttled_fetch(session, url, headers=None, retries=3):
             start_time = time.time()  # Record the start time of the request
             async with session.get(url, headers=headers) as response:
                 response.raise_for_status()
-                print(f"URL: {url} fetched successfully")
+                # print(f"URL: {url} fetched successfully")
                 return await response.text()
         except aiohttp.ClientError as e:
             logging.error(f"Failed to fetch page: {e}")
@@ -132,9 +132,14 @@ def get_qsep(qr):
     return "?" if qr.find("?") < 0 else "&"
 
 
+def get_data_from_api(url):
+    loop = asyncio.get_event_loop()
+    data = loop.run_until_complete(api_scrapper(url))
+    data = json.dumps(data, indent=4)
+    return json.loads(data)
+
 # Testing the function
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    data = loop.run_until_complete(api_scrapper("cursus_users?filter[campus_id]=31&filter[active]=true"))
-    data = json.dumps(data, indent=4)
-    # print(data)
+    data = get_data_from_api("url")
+    print(data)
+

@@ -4,9 +4,8 @@ import asyncio
 import json
 import logging
 import re
-from tqdm import tqdm
-from api42config import TOKEN_URL, ENDPOINT, PARAMS
 import time
+from api42config import TOKEN_URL, ENDPOINT, PARAMS
 
 RATE_LIMIT = 8  # Define the rate limit (requests per second)
 
@@ -99,23 +98,12 @@ async def throttled_fetch(session, url, headers=None, retries=3):
 
 
 
-async def scrapper(session, qr, token, opt=None):
-    opt = "" if opt is None else opt
+async def scrapper(session, qr, token):
     try:
         page_max = await get_pmax(session, qr, token)
         reqs = [f"{ENDPOINT}/{qr}{get_qsep(qr)}page={page}" for page in range(1, page_max + 1)]
-
         pages = []
-        if "v" in opt:
-            with tqdm(total=page_max) as pbar:
-                for req in reqs:
-                    page = await throttled_fetch(session, req)
-                    if page:
-                        pages.append(page)
-                    pbar.update()
-        else:
-            pages = await asyncio.gather(*[throttled_fetch(session, req, headers={"Authorization": f"Bearer {token}"}) for req in reqs])
-
+        pages = await asyncio.gather(*[throttled_fetch(session, req, headers={"Authorization": f"Bearer {token}"}) for req in reqs])
         sorted_pages = sorted(pages, key=lambda x: int(re.search(r"page=(\d+)", x).group(1)) if re.search(r"page=(\d+)", x) else 0)
 
         return [json.loads(page) for page in sorted_pages if page]
@@ -124,12 +112,12 @@ async def scrapper(session, qr, token, opt=None):
         return []
 
 
-async def api_scrapper(qr, opt=None):
+async def api_scrapper(qr):
     try:
         async with aiohttp.ClientSession() as session:
             token = await get_token(session)
             if token:
-                return await scrapper(session, qr, token, opt)
+                return await scrapper(session, qr, token)
             else:
                 logging.error("Failed to obtain token.")
                 return []
@@ -144,6 +132,6 @@ def get_qsep(qr):
 # Testing the function
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    data = loop.run_until_complete(api_scrapper("cursus_users?filter[campus_id]=31&filter[active]=true", opt=None))
+    data = loop.run_until_complete(api_scrapper("cursus_users?filter[campus_id]=31&filter[active]=true"))
     data = json.dumps(data, indent=4)
     print(data)

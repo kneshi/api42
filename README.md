@@ -1,6 +1,6 @@
 # Async API 42 Scraper with Rate Limiting
 
-This Python script is an asynchronous api scraper that fetches data from 42 while respecting a specified rate limit (based on your app). Hoping this script scrape data without overwhelming 42 servers with too many requests.
+This Python script is an asynchronous api scraper that fetches data from 42 while respecting a specified rate limit (based on your app limit). Hoping this script scrape data without overwhelming 42 servers with too many requests.
 
 ## Features
 
